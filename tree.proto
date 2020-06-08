@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package Serialize;
+
+message Node{
+    oneof typeOfValue{
+		string valueString = 1;
+		int32 valueInt = 2;
+		double valueDouble = 3;
+	}
+    uint32 level = 4;
+
+    enum TYPE{
+        INT = 0;
+        DOUBLE = 1;
+        STRING = 3;
+    };
+
+    TYPE type = 5;
+}
+
+message NodeList{
+    repeated Node nodes = 1;
+}
+
