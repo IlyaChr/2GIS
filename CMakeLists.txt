@@ -16,9 +16,10 @@ protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS tree.proto)
 
 add_executable(main
     src/main.cpp
+    src/tree.cpp
+    src/tree_serializer.cpp
     include/tree_serializer.h
     include/tree.h
-    src/tree_serializer.cpp
     ${PROTO_SRCS}
     ${PROTO_HDRS})
 target_link_libraries(main ${Protobuf_LIBRARIES})

@@ -4,7 +4,7 @@
 #include <utility>
 #include <string>
 #include <iostream>
-
+#include <memory>
 
 
 enum class ValueType{
@@ -14,86 +14,113 @@ enum class ValueType{
     DOUBLE_TYPE = 3
 };
 
-template <typename T>
-struct Node{
+class Node{
+public:
 
-    Node(T value):
-        value(value)
-        {}
+    Node(std::string value,ValueType value_type);
 
-    bool hasChild() const{
-        return !childs.empty();
-    }
+    void addChild(Node* node);
 
+    bool hasChild() const;
+
+    ValueType getValueType() const;
+
+    std::vector<Node*>& getChilds() const;
+
+    std::string getValue() const;
+
+protected:
     mutable std::vector<Node*> childs;
-    T value;
+    ValueType value_type;
+    std::string value;
 };
 
-template<typename T>
-using NP = Node<T>*;
 
-template<typename T>
+class IntNode : public Node{
+public:
+    IntNode(int value);
+};
+
+class DoubleNode : public Node{
+public:
+    DoubleNode(double value);
+};
+
+class StringNode : public Node{
+public:
+
+    StringNode(std::string value);
+};
+
+
 class Tree
 {
     public:
+
+        template<typename T>
         Tree(T value);
+
         ~Tree();
 
-        NP<T> AddChild(const NP<T> node,T value);
+        template<typename ChildType>
+        Node* AddChild(Node* node,ChildType value);
 
         void Print() const;
 
-        const NP<T> getHead() const;
+        Node* getHead() const;
+
+        //static Tree* createTreeFromMap(const std::map<int,std::vector<Node*>>& tree_map);
 
     protected:
-        void PrintTree(const NP<T> currentNode) const;
+        void PrintTree(const Node* currentNode) const;
+
+        void freeNode(Node* currentNode);
+
 
     private:
-        NP<T> tree_head ;
+        Node* tree_head ;
 
+        template <typename T>
+        ValueType getValueType(const T& value) const;
+
+        Node* createSpecificNode(int value);
+        Node* createSpecificNode(double value);
+        Node* createSpecificNode(std::string value);
 
 };
 
-
 template<typename T>
-Tree<T>::Tree(T value){
-    tree_head = new Node<T>(std::move(value));
+Tree::Tree(T value){
+    tree_head = createSpecificNode(value);
 }
 
-template<typename T>
-Tree<T>::~Tree(){
+
+
+template<typename ChildType>
+Node* Tree::AddChild(Node* node,ChildType value){
+        Node* newNode = createSpecificNode(value);
+        node->addChild(newNode);
+        return newNode;
 }
 
-template<typename T>
-NP<T> Tree<T>::AddChild(const NP<T> node,T value){
-            NP<T> newNode = new Node<T>(std::move(value));
-            node->childs.push_back(newNode);
-            return newNode;
-}
-
-template<typename T>
-void Tree<T>::Print() const{
-    std::cout<<"--------PrintTree--------"<<std::endl;
-    PrintTree(getHead());
-    std::cout<<std::endl;
-}
-
-template<typename T>
-void Tree<T>::PrintTree(const NP<T> currentNode) const{
 
 
-    if (currentNode){
-        if(currentNode->hasChild()){
-            for (auto it = currentNode->childs.begin(); it != currentNode->childs.end(); it++){
-                PrintTree(*it);
-            }
-        }
-        std::cout<<"value: "<<currentNode->value<<std::endl;
+
+template <typename T>
+ValueType Tree::getValueType(const T& value) const{
+    if (std::is_same<int,T>::value){
+        return ValueType::INT_TYPE;
+
+    } else if (std::is_same<double,T>::value){
+        return ValueType::DOUBLE_TYPE;
+
+    } else if (std::is_same<std::string,T>::value){
+        return ValueType::STRING_TYPE;
     }
+    return ValueType::UNKNOWN_TYPE;
 }
 
-template<typename T>
-const NP<T> Tree<T>::getHead() const{
-    return tree_head;
-}
+
+
+
 

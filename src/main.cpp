@@ -5,36 +5,23 @@
 using namespace std;
 
 
-typedef Node<int> IntNode;
-typedef Node<string> StringNode;
-typedef Node<int> DSNode;
-typedef Node<int> IntNode2;
-
 int main(){
+
 
     Tree tree(10);
 
-    auto leftNode = tree.AddChild(tree.getHead(),34);
-
-    auto fromLeftNode = tree.AddChild(leftNode,436);
-
-
-    auto rightNode =tree.AddChild(tree.getHead(),4444);
-
-    const Node<int>* fromRightNode_1 = tree.AddChild(rightNode,6);
-
-    auto fromRightNode_2 = tree.AddChild(rightNode,-46);
-
-    /*if (is_same<IntNode,StringNode>::value){
-        cout<<"sd"<<endl;
-    }*/
+    Node* node_10 = tree.AddChild(tree.getHead(),35);
+    Node* node_20 = tree.AddChild(node_10,436);
+    Node* node_11 =tree.AddChild(tree.getHead(),4444);
+    Node* node_12 =tree.AddChild(tree.getHead(),"String4444");
+    Node* node_30 = tree.AddChild(node_20,34.64);
 
     tree.Print();
 
-
     TreeSerializer tr;
-    tr.Serialize(tree);
-    tr.Deserialize();
+    tr.Serialize(tree,TreeSerializer::FILE_NAME);
+    tr.Deserialize(TreeSerializer::FILE_NAME);
+
 
 return 0;
 }
