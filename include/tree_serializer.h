@@ -8,8 +8,8 @@
 class TreeSerializer
 {
     public:
-        TreeSerializer(){}
-        virtual ~TreeSerializer(){}
+        TreeSerializer();
+        ~TreeSerializer();
 
         void Serialize(const Tree& tree,const std::string& file_name);
 
@@ -18,12 +18,17 @@ class TreeSerializer
         static const std::string FILE_NAME;
 
     protected:
-        bool addToNodeList(const std::string& value,ValueType valueType,const uint32_t& level);
 
-        void SerializeTree(const Node* node,int& level);
+        void prepareNode(Serialize::Node* parent_node,Node* node);
+
+        bool setNodeValue(Serialize::Node* parent_node,const std::string& value,ValueType valueType);
+
+        Node* createTree(Node* root , const Serialize::Node& node);
+
+        Node* createNode(const Serialize::Node& node);
 
     private:
-        Serialize::NodeList node_list;
+        Serialize::Node* root_node;
 };
 
 

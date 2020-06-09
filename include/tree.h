@@ -1,10 +1,7 @@
 #pragma once
 
 #include <vector>
-#include <utility>
 #include <string>
-#include <iostream>
-#include <memory>
 
 
 enum class ValueType{
@@ -57,8 +54,14 @@ class Tree
 {
     public:
 
+        Tree();
+
         template<typename T>
         Tree(T value);
+
+        Tree(const Tree& otherTree);
+        Tree(Tree&& otherTree);
+        Tree(Node* head);
 
         ~Tree();
 
@@ -69,7 +72,6 @@ class Tree
 
         Node* getHead() const;
 
-        //static Tree* createTreeFromMap(const std::map<int,std::vector<Node*>>& tree_map);
 
     protected:
         void PrintTree(const Node* currentNode) const;

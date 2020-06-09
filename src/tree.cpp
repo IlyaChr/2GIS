@@ -1,5 +1,7 @@
 #include "tree.h"
-
+#include <utility>
+#include <iostream>
+#include <memory>
 
 Node::Node(std::string value,ValueType value_type):
         value(value),
@@ -34,17 +36,30 @@ DoubleNode::DoubleNode(double value):Node(std::to_string(value),ValueType::DOUBL
 StringNode::StringNode(std::string value):Node(value,ValueType::STRING_TYPE){}
 
 
+Tree::Tree():tree_head(nullptr){}
+
+Tree::Tree(Node* head):tree_head(head){}
+
+
+Tree::Tree(const Tree& otherTree):
+    tree_head(otherTree.tree_head){}
+
+
+Tree::Tree(Tree&& otherTree):
+    tree_head(otherTree.tree_head){
+    otherTree.tree_head = nullptr;
+}
+
 Tree::~Tree(){
     freeNode(tree_head);
 }
 
 void Tree::freeNode(Node* currentNode){
     if (currentNode){
-        if(currentNode->hasChild()){
-            for (auto it = currentNode->getChilds().begin(); it != currentNode->getChilds().end(); it++){
-                freeNode(*it);
-            }
+        for (auto node : currentNode->getChilds()){
+            freeNode(node);
         }
+        //std::cout<<"delete"<<std::endl;
         delete currentNode;
     }
 }
@@ -59,12 +74,9 @@ void Tree::Print() const{
 
 
 void Tree::PrintTree(const Node* currentNode) const{
-
     if (currentNode){
-        if(currentNode->hasChild()){
-            for (auto it = currentNode->getChilds().begin(); it != currentNode->getChilds().end(); it++){
-                PrintTree(*it);
-            }
+        for (auto node : currentNode->getChilds()){
+            PrintTree(node);
         }
         std::cout<<"value: "<<currentNode->getValue()<<std::endl;
     }
@@ -90,24 +102,6 @@ Node* Tree::createSpecificNode(int value){
 Node* Tree::createSpecificNode(double value){
     return new DoubleNode(std::move(value));
 }
-
-/*Tree* Tree::createTreeFromMap(const std::map<int,std::vector<Node*>>& tree_map){
-    Tree* tree;
-    if (!tree_map.empty()){*/
-        //tree = new Tree(tree_map.at(0)[0]);
-
-        //Node* currentNode;
-
-        /*for (const auto& [key,value] : tree_map){
-            currentNode = value[];
-            for (const Node& node : node){
-                currentNode->addChild(node);
-            }
-        }*/
-
-  //  }
-  //  return tree;
-//}*/
 
 
 

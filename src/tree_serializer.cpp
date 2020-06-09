@@ -9,37 +9,44 @@
 const std::string TreeSerializer::FILE_NAME = "tree.bin";
 
 
-void TreeSerializer::Serialize(const Tree& tree,const std::string& file_name){
-    std::ofstream out(file_name,std::ios::binary);
-    node_list.clear_nodes();
-    int level = 0;
-    SerializeTree(tree.getHead(),level);
-    node_list.SerializePartialToOstream(&out);
-}
+TreeSerializer::TreeSerializer():root_node(nullptr){}
 
-
-
-void TreeSerializer::SerializeTree(const Node* node,int& level){
-
-    if (node){
-        if(node->hasChild()){
-            for (auto it = node->getChilds().begin(); it != node->getChilds().end(); it++){
-                SerializeTree(*it,++level);
-            }
-        }
-        if (!addToNodeList(node->getValue(),node->getValueType(),level)){
-            std::cerr<<"Type of data is unknown"<<std::endl;
-        }
-
-        --level;
+TreeSerializer::~TreeSerializer(){
+    if (root_node){
+        delete root_node;
     }
 }
 
+void TreeSerializer::Serialize(const Tree& tree,const std::string& file_name){
+    std::ofstream out(file_name,std::ios::binary);
 
-bool TreeSerializer::addToNodeList(const std::string& value,ValueType valueType,const uint32_t& level){
+    std::cout<<"Serialize tree to \""<<file_name<<"\" file"<<std::endl;
 
-    Serialize::Node* new_node = node_list.add_nodes();
+    if (root_node){
+        delete root_node;
+    }
+    root_node = new Serialize::Node();
 
+    prepareNode(root_node,tree.getHead());
+    root_node->SerializePartialToOstream(&out);
+}
+
+
+void TreeSerializer::prepareNode(Serialize::Node* parent_node,Node* node){
+
+    if (node){
+        for (auto current_node : node->getChilds()){
+            prepareNode(parent_node->add_childs(),current_node);
+        }
+
+        if (!setNodeValue(parent_node,node->getValue(),node->getValueType())){
+            std::cerr<<"Type of data is unknown"<<std::endl;
+        }
+    }
+
+}
+
+bool TreeSerializer::setNodeValue(Serialize::Node* new_node,const std::string& value,ValueType valueType){
     switch(valueType){
         case ValueType::INT_TYPE :
             new_node->set_valueint(std::stoi(value));
@@ -62,41 +69,62 @@ bool TreeSerializer::addToNodeList(const std::string& value,ValueType valueType,
             return false;
     }
 
-    new_node->set_level(level);
     return true;
+
 }
+
 
 
 Tree TreeSerializer::Deserialize(const std::string& file_name){
     std::ifstream in(file_name,std::ios::binary);
-    Serialize::NodeList nodeList;
+    Serialize::Node node;
+    std::cout<<"Deserialize tree from \""<<file_name<<"\" file"<<std::endl;
 
-    std::map<int,std::vector<Node*>> node_map;
+    Tree* tree = nullptr;
 
-    if (!in){
+    if (in && node.ParseFromIstream(&in)){
+        std::cout<<"Deserialize successfully"<<std::endl;
+
+        Node* head = createNode(node);
+
+        return Tree(createTree(head,node));
+
+    }else {
+
         std::cerr<<"No such file"<<std::endl;
-    }else{
-        if (nodeList.ParseFromIstream(&in)){
-             for(const auto& value : nodeList.nodes()){
-                switch(value.type()){
-                    case Serialize::Node_TYPE::Node_TYPE_INT :
-                        std::cout<<"value: "<<std::setw(10)<<value.valueint();
-                        node_map[value.level()].push_back(new IntNode(value.valueint()));
-                    break;
-
-                    case Serialize::Node_TYPE::Node_TYPE_DOUBLE :
-                        std::cout<<"value: "<<std::setw(10)<<value.valuedouble();
-                        node_map[value.level()].push_back(new DoubleNode(value.valuedouble()));
-                    break;
-
-                    case Serialize::Node_TYPE::Node_TYPE_STRING :
-                        std::cout<<"value: "<<std::setw(10)<<value.valuestring();
-                        node_map[value.level()].push_back(new StringNode(value.valuestring()));
-                    break;
-                }
-                std::cout<<" level: "<<std::setw(5)<<value.level()<<std::endl;
-             }
-        }
     }
-    //return true;
+
+    return Tree();
+
+}
+
+Node* TreeSerializer::createTree(Node* node , const Serialize::Node& nodeSer){
+
+    for (auto childNode : nodeSer.childs()){
+            Node* newNode = createNode(childNode);
+            if (newNode){
+                node->addChild(createTree(newNode,childNode));
+            }
+    }
+
+    return node;
+}
+
+Node* TreeSerializer::createNode(const Serialize::Node& nodeSer){
+    Node* node = nullptr;
+
+    switch(nodeSer.type()){
+        case Serialize::Node_TYPE::Node_TYPE_INT :
+            node = new IntNode(nodeSer.valueint());
+        break;
+
+        case Serialize::Node_TYPE::Node_TYPE_DOUBLE :
+            node = new DoubleNode(nodeSer.valuedouble());
+        break;
+
+        case Serialize::Node_TYPE::Node_TYPE_STRING :
+            node = new StringNode(nodeSer.valuestring());
+        break;
+    }
+    return node;
 }
