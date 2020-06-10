@@ -47,6 +47,7 @@ class StringNode : public Node{
 public:
 
     StringNode(std::string value);
+
 };
 
 

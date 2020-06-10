@@ -23,12 +23,12 @@ class TreeSerializer
 
         bool setNodeValue(Serialize::Node* parent_node,const std::string& value,ValueType valueType);
 
+        void clearSerializedNodes(Serialize::Node* parent_node);
+
         Node* createTree(Node* root , const Serialize::Node& node);
 
         Node* createNode(const Serialize::Node& node);
 
-    private:
-        Serialize::Node* root_node;
 };
 
 

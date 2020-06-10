@@ -8,12 +8,16 @@
 
 const std::string TreeSerializer::FILE_NAME = "tree.bin";
 
+TreeSerializer::TreeSerializer(){}
+TreeSerializer::~TreeSerializer(){}
 
-TreeSerializer::TreeSerializer():root_node(nullptr){}
+void TreeSerializer::clearSerializedNodes(Serialize::Node* node){
 
-TreeSerializer::~TreeSerializer(){
-    if (root_node){
-        delete root_node;
+    if (node){
+        for (int i = 0; i<node->childs_size(); i++){
+            clearSerializedNodes(node->mutable_childs(i));
+        }
+        delete node;
     }
 }
 
@@ -22,28 +26,24 @@ void TreeSerializer::Serialize(const Tree& tree,const std::string& file_name){
 
     std::cout<<"Serialize tree to \""<<file_name<<"\" file"<<std::endl;
 
-    if (root_node){
-        delete root_node;
-    }
-    root_node = new Serialize::Node();
-
+    Serialize::Node* root_node = new Serialize::Node();
     prepareNode(root_node,tree.getHead());
     root_node->SerializePartialToOstream(&out);
+    clearSerializedNodes(root_node);
 }
 
 
 void TreeSerializer::prepareNode(Serialize::Node* parent_node,Node* node){
-
     if (node){
         for (auto current_node : node->getChilds()){
-            prepareNode(parent_node->add_childs(),current_node);
+            Serialize::Node* child(parent_node->add_childs());
+            prepareNode(child,current_node);
         }
 
         if (!setNodeValue(parent_node,node->getValue(),node->getValueType())){
             std::cerr<<"Type of data is unknown"<<std::endl;
         }
     }
-
 }
 
 bool TreeSerializer::setNodeValue(Serialize::Node* new_node,const std::string& value,ValueType valueType){
@@ -79,23 +79,17 @@ Tree TreeSerializer::Deserialize(const std::string& file_name){
     std::ifstream in(file_name,std::ios::binary);
     Serialize::Node node;
     std::cout<<"Deserialize tree from \""<<file_name<<"\" file"<<std::endl;
-
     Tree* tree = nullptr;
 
     if (in && node.ParseFromIstream(&in)){
         std::cout<<"Deserialize successfully"<<std::endl;
-
         Node* head = createNode(node);
-
         return Tree(createTree(head,node));
-
     }else {
-
         std::cerr<<"No such file"<<std::endl;
     }
 
     return Tree();
-
 }
 
 Node* TreeSerializer::createTree(Node* node , const Serialize::Node& nodeSer){

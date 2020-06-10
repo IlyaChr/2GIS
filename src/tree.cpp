@@ -59,7 +59,6 @@ void Tree::freeNode(Node* currentNode){
         for (auto node : currentNode->getChilds()){
             freeNode(node);
         }
-        //std::cout<<"delete"<<std::endl;
         delete currentNode;
     }
 }
